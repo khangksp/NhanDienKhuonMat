@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Điểm Danh Khuôn Mặt</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+        
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+        
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-bottom: none;
+        }
+        
+        .card-title {
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .instructions {
+            background-color: #e7f1ff;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h5 {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .instructions ol {
+            margin-bottom: 0;
+            padding-left: 30px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .session-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            color: #495057;
+        }
+        
+        .info-item i {
+            color: #0d6efd;
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .video-container {
+            position: relative;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-feed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #6c757d;
+        }
+        
+        .video-error {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .recognition-box {
+            border: 3px solid #28a745;
+            border-radius: 4px;
+            position: absolute;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+        
+        .student-info {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .btn-attend {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 15px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-attend i {
+            margin-right: 10px;
+        }
+        
+        .btn-attend:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+        
+        .attendance-stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-item .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-item .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-item.total .stat-value {
+            color: #0d6efd;
+        }
+        
+        .stat-item.present .stat-value {
+            color: #28a745;
+        }
+        
+        .stat-item.absent .stat-value {
+            color: #dc3545;
+        }
+        
+        .student-list {
+            margin-top: 20px;
+        }
+        
+        .student-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .student-card .student-info-left {
+            flex: 1;
+        }
+        
+        .student-card .student-id {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .student-card .student-status {
+            color: #28a745;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .student-card .student-status i {
+            margin-right: 5px;
+        }
+        
+        .empty-state {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+        
+        .view-all-btn {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #0d6efd;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .view-all-btn i {
+            margin-right: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        .camera-error-btn {
+            margin-top: 15px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="row g-4">
+            <!-- Left Column - Camera & Controls -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-camera"></i> Điểm Danh Khuôn Mặt Sinh Viên
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="instructions">
+                            <h5><i class="fas fa-info-circle"></i> Hướng dẫn:</h5>
+                            <ol>
+                                <li>Đảm bảo khuôn mặt hiển thị rõ ràng trong khung hình</li>
+                                <li>Không đeo kính râm hoặc che khuất khuôn mặt</li>
+                                <li>Đứng yên cho đến khi hệ thống nhận diện</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="session-info">
+                            <div class="info-item">
+                                <i class="fas fa-book"></i>
+                                <span><strong>Môn học:</strong> KỸ THUẬT PHÂN TÍCH YÊU CẦU</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span><strong>Thời gian:</strong> <span id="current-time">7:36</span></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span><strong>Giảng viên:</strong> Huỳnh Quang Đức</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span><strong>Ngày:</strong> <span id="current-date">Thứ Tư, 2 tháng 4, 2025</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="video-container">
+                            <!-- Video feed from API url -->
+                            <img id="videoElement" src="{% url 'video_feed' %}" width="640" height="480" class="video-feed" style="display: none;" alt="Luồng video điểm danh">
+                            
+                            <!-- Placeholder when camera is not active -->
+                            <div id="videoPlaceholder" class="video-placeholder">
+                                <i class="fas fa-camera fa-3x mb-3"></i>
+                                <p>Nhấn nút "Bắt Đầu Điểm Danh" để kích hoạt camera</p>
+                            </div>
+                            
+                            <!-- Error message if video feed fails -->
+                            <div id="videoError" class="video-error" style="display: none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h4>Không thể kết nối với camera</h4>
+                                <p>Vui lòng kiểm tra lại kết nối hoặc thử lại sau.</p>
+                                <button id="retryCameraBtn" class="btn btn-outline-light camera-error-btn">
+                                    <i class="fas fa-redo-alt"></i> Thử lại
+                                </button>
+                            </div>
+                            
+                            <!-- Recognition overlay with face detection boxes -->
+                            <div id="detectionOverlay" class="detection-overlay" style="display: none;">
+                                <!-- Will be populated dynamically when a face is detected -->
+                            </div>
+                        </div>
+                        
+                        <!-- Success message when recognition succeeds -->
+                        <div id="studentInfoSuccess" class="student-info" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle fa-2x me-3" style="color: #28a745;"></i>
+                                <div>
+                                    <h5 class="mb-1">Đã điểm danh thành công</h5>
+                                    <p class="mb-0" id="studentInfoText"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Attendance button -->
+                        <button id="startAttendanceBtn" class="btn-attend btn btn-primary">
+                            <i class="fas fa-camera"></i> Bắt Đầu Điểm Danh
+                        </button>
+                        
+                        <button id="stopAttendanceBtn" class="btn-attend btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop-circle"></i> Dừng Điểm Danh
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Attendance List -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-clipboard-list"></i> Danh Sách Điểm Danh
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="attendance-stats">
+                            <div class="stat-item total">
+                                <div class="stat-label">Tổng số</div>
+                                <div class="stat-value">35</div>
+                            </div>
+                            <div class="stat-item present">
+                                <div class="stat-label">Đã điểm danh</div>
+                                <div class="stat-value" id="presentCount">0</div>
+                            </div>
+                            <div class="stat-item absent">
+                                <div class="stat-label">Vắng</div>
+                                <div class="stat-value" id="absentCount">35</div>
+                            </div>
+                        </div>
+                        
+                        <div id="studentList" class="student-list">
+                            <!-- Empty state - shown when no students are checked in -->
+                            <div id="emptyState" class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h5>Chưa có sinh viên nào điểm danh</h5>
+                                <p>Nhấn nút "Bắt Đầu Điểm Danh" để bắt đầu</p>
+                            </div>
+                            
+                            <!-- Student cards will be added dynamically here -->
+                        </div>
+                        
+                        <a href="#" id="viewAllBtn" class="view-all-btn" style="display: none;">
+                            <i class="fas fa-list"></i> Xem tất cả sinh viên
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            © 2025 - Hệ Thống Điểm Danh Khuôn Mặt | Phát triển bởi Khoa CNTT
+        </div>
+    </div>
+
+    <!-- Bootstrap & JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Elements
+        const videoElement = document.getElementById('videoElement');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const videoError = document.getElementById('videoError');
+        const detectionOverlay = document.getElementById('detectionOverlay');
+        const startAttendanceBtn = document.getElementById('startAttendanceBtn');
+        const stopAttendanceBtn = document.getElementById('stopAttendanceBtn');
+        const studentInfoSuccess = document.getElementById('studentInfoSuccess');
+        const studentInfoText = document.getElementById('studentInfoText');
+        const retryCameraBtn = document.getElementById('retryCameraBtn');
+        const studentList = document.getElementById('studentList');
+        const emptyState = document.getElementById('emptyState');
+        const presentCount = document.getElementById('presentCount');
+        const absentCount = document.getElementById('absentCount');
+        const viewAllBtn = document.getElementById('viewAllBtn');
+        
+        // Attendance tracking
+        let attendanceList = [];
+        
+        // Student database - in reality this would be fetched from your backend
+        // For demo purposes only - actual student data would come from recognition system
+        const studentDatabase = {
+            // Mock database to map student IDs to names and faculty
+            // Used only when student ID is detected and we need to display a name
+            "22050006": { name: "Nguyễn Quốc Duy Khang", faculty: "Khoa Công Nghệ Thông Tin" },
+        };
+        
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('vi-VN', options);
+            
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('current-time').textContent = hours + ':' + minutes;
+        }
+        
+        // Start video feed
+        function startVideoFeed() {
+            try {
+                // Show video element, hide placeholder
+                videoElement.style.display = 'block';
+                videoPlaceholder.style.display = 'none';
+                videoError.style.display = 'none';
+                
+                // Set error handler for video
+                videoElement.onerror = function() {
+                    videoError.style.display = 'flex';
+                    videoElement.style.display = 'none';
+                };
+                
+                return true;
+            } catch (err) {
+                console.error("Error starting video feed:", err);
+                videoError.style.display = 'flex';
+                videoPlaceholder.style.display = 'none';
+                return false;
+            }
+        }
+        
+        // Stop video feed
+        function stopVideoFeed() {
+            // Hide video, show placeholder
+            videoElement.style.display = 'none';
+            videoPlaceholder.style.display = 'flex';
+            detectionOverlay.style.display = 'none';
+        }
+        
+        // Function to extract student ID from video feed (simulated)
+        // In reality, this would be handled by your KNN face recognition system
+        // and would detect actual faces in the video feed
+        function listenForFaceDetection() {
+            return new Promise((resolve) => {
+                // This simulates the process of recognizing a face
+                // In real implementation, this would be a callback from your face recognition system
+                setTimeout(() => {
+                    // Simulate detection of a student
+                    const studentId = "22050006"; // This would come from your recognition algorithm
+                    
+                    // Create and show detection box
+                    showDetectionBox(studentId);
+                    
+                    // Resolve with detected student ID
+                    resolve(studentId);
+                }, 2000);
+            });
+        }
+        
+        // Show detection box around detected face
+        function showDetectionBox(studentId) {
+            // Clear any existing detection boxes
+            detectionOverlay.innerHTML = '';
+            detectionOverlay.style.display = 'block';
+            
+            // Create detection box at a random position
+            // In real app, this would be positioned based on actual face coordinates
+            const x = 25 + Math.random() * 20;
+            const y = 25 + Math.random() * 20;
+            const width = 30 + Math.random() * 10;
+            const height = width * 1.3;
+            
+            const box = document.createElement('div');
+            box.className = 'recognition-box';
+            box.style.top = `${y}%`;
+            box.style.left = `${x}%`;
+            box.style.width = `${width}%`;
+            box.style.height = `${height}%`;
+            
+            // Add student ID label
+            const idLabel = document.createElement('div');
+            idLabel.style.position = 'absolute';
+            idLabel.style.top = '-25px';
+            idLabel.style.left = '0';
+            idLabel.style.backgroundColor = '#28a745';
+            idLabel.style.color = 'white';
+            idLabel.style.padding = '2px 8px';
+            idLabel.style.borderRadius = '4px';
+            idLabel.textContent = `ID: ${studentId}`;
+            
+            box.appendChild(idLabel);
+            detectionOverlay.appendChild(box);
+        }
+        
+        // Handle successful face recognition
+        function handleRecognizedStudent(studentId) {
+            // Check if student ID exists and hasn't been checked in yet
+            if (studentId && !attendanceList.some(student => student.id === studentId)) {
+                // Look up student info from database
+                const studentInfo = studentDatabase[studentId];
+                
+                if (studentInfo) {
+                    // Create student object with complete info
+                    const student = {
+                        id: studentId,
+                        name: studentInfo.name,
+                        faculty: studentInfo.faculty
+                    };
+                    
+                    // Add to attendance list
+                    attendanceList.push(student);
+                    
+                    // Update attendance stats
+                    updateAttendanceStats();
+                    
+                    // Update student list display
+                    updateStudentList();
+                    
+                    // Show success message
+                    studentInfoText.textContent = `ID: ${student.id} - ${student.name}`;
+                    studentInfoSuccess.style.display = 'block';
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        studentInfoSuccess.style.display = 'none';
+                    }, 5000);
+                    
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Update attendance statistics
+        function updateAttendanceStats() {
+            presentCount.textContent = attendanceList.length;
+            absentCount.textContent = 35 - attendanceList.length;
+        }
+        
+        // Update the student list display
+        function updateStudentList() {
+            // Clear current list except for the empty state
+            while (studentList.firstChild) {
+                studentList.removeChild(studentList.firstChild);
+            }
+            
+            if (attendanceList.length === 0) {
+                // Show empty state
+                emptyState.style.display = 'block';
+                studentList.appendChild(emptyState);
+                viewAllBtn.style.display = 'none';
+            } else {
+                // Hide empty state
+                emptyState.style.display = 'none';
+                viewAllBtn.style.display = 'block';
+                
+                // Add each student to the list
+                attendanceList.forEach(student => {
+                    const card = document.createElement('div');
+                    card.className = 'student-card';
+                    card.innerHTML = `
+                        <div class="student-info-left">
+                            <div class="student-id">ID: ${student.id}</div>
+                            <div>${student.name}</div>
+                            <small>${student.faculty}</small>
+                        </div>
+                        <div class="student-status">
+                            <i class="fas fa-check-circle"></i> Có mặt
+                        </div>
+                    `;
+                    studentList.appendChild(card);
+                });
+            }
+        }
+        
+        // Event Listeners
+        startAttendanceBtn.addEventListener('click', async () => {
+            // Try to start video feed
+            const success = startVideoFeed();
+            
+            if (success) {
+                // Hide start button, show stop button
+                startAttendanceBtn.style.display = 'none';
+                stopAttendanceBtn.style.display = 'block';
+                
+                // Start face recognition process
+                const studentId = await listenForFaceDetection();
+                const recognized = handleRecognizedStudent(studentId);
+                
+                // After recognition process completes
+                setTimeout(() => {
+                    stopVideoFeed();
+                    stopAttendanceBtn.style.display = 'none';
+                    startAttendanceBtn.style.display = 'block';
+                }, recognized ? 3000 : 1000);
+            }
+        });
+        
+        stopAttendanceBtn.addEventListener('click', () => {
+            // Stop video feed and reset UI
+            stopVideoFeed();
+            stopAttendanceBtn.style.display = 'none';
+            startAttendanceBtn.style.display = 'block';
+        });
+        
+        retryCameraBtn.addEventListener('click', () => {
+            // Try to restart video feed
+            startVideoFeed();
+        });
+        
+        // Initialize the page
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Update time every minute
+        updateAttendanceStats();
+        updateStudentList();
+    </script>
+</body>
+</html>
